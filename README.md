@@ -29,6 +29,8 @@ The goal of the project is to build practical experience with both functional so
 
 SEVENT is developed iteratively and tested as the solution evolves.
 
+Documentation reviewed on **2026-10-02**, incorporating development work discussed after the **2026-09-03** repository baseline. These notes distinguish observed results from configuration work and pending verification. They do not assert that the existing solution ZIP contains the later environment changes.
+
 ### Implemented and Demonstrated
 
 - Dataverse data model and relationships
@@ -43,13 +45,24 @@ SEVENT is developed iteratively and tested as the solution evolves.
 - Azure DevOps Boards
 - Azure Repos source control using PAC CLI
 
+### Progress after 2026-09-03
+
+| Area | Recorded progress | Remaining work |
+| --- | --- | --- |
+| Power Pages reservation creation | Creation of the reservation record in Dataverse confirmed in development on September 18. | Verify the full submission-to-confirmation journey. |
+| Confirmation/status polling | Processing Status flow mapping developed; JavaScript polling via the Power Pages Web API designed to refresh asynchronous results. | Successful automatic refresh without a manual reload is not yet confirmed. |
+| Driver licence extraction | Azure AI Document Intelligence v4 extraction tested; switching input from a Dataverse Image column to a File column produced correct name, date of birth and expiry on tested samples. | Broader extraction evaluation and end-to-end validation/manual-review tests. |
+| Approval flow | September work records a redesign around `Start and wait for an approval`, including an alternate-approver fallback. | Approval, rejection, timeout and fallback behaviour still need recorded end-to-end verification. |
+
+See [Power Pages and approvals](docs/power-pages-and-approvals.md) and [driver licence validation](docs/driver-licence-validation.md) for evidence boundaries and follow-up checks.
+
 ### In Progress
 
 - Rental Operations Agent with Copilot Studio
-- AI-assisted driver licence validation
+- AI-assisted driver licence validation: broader sample testing and end-to-end review/approval verification
 - Additional Power Automate flows
 - Business Process Flow and lifecycle refinements
-- Power Pages refinements
+- Power Pages: confirm automatic status polling and complete end-to-end portal testing
 - DEV-to-TEST deployment pipeline
 - Mobile Pickup & Return experience
 
@@ -161,7 +174,7 @@ Cancellation and no-show scenarios are also supported.
 
 ## Power Automate
 
-Power Automate is used throughout SEVENT for business logic, integrations, scheduled processing, document generation, notifications, approvals, and AI-assisted validation.
+Power Automate is used throughout SEVENT for business logic, integrations, scheduled processing, notifications, approvals, and AI-assisted validation. The list includes work at different stages; document generation and related hand-off remain planned or unverified.
 
 Automation scenarios include:
 
@@ -171,9 +184,9 @@ Automation scenarios include:
 - Microsoft Teams and email notifications
 - Manager approval workflows
 - Scheduled upcoming-return processing
-- Word template document generation
-- SharePoint document storage
-- Rental summary communication
+- Word template generation for signing (planned)
+- SharePoint document storage (completion not verified in this update)
+- Rental summary communication (completion not verified in this update)
 - AI-assisted driver licence processing
 - Error handling using Try/Catch-style scopes
 
@@ -187,9 +200,11 @@ The flow handles values such as driver age, licence validity, rental days, locat
 
 ### AI-assisted Driver Licence Validation
 
-The driver licence validation workflow combines Dataverse, document processing, Azure AI Document Intelligence, AI Builder, and business validation logic.
+The driver licence validation work connects Dataverse and Power Automate with Azure AI Document Intelligence. OCR, custom extraction and structured-field approaches were evaluated; this does not imply that every evaluated tool is part of the final flow.
 
-The feature is still being refined and tested as part of the SEVENT roadmap.
+Extraction from File-column input has produced correct values on tested samples. Confidence handling, business validation and human review remain an integration/testing workstream. See the [detailed validation notes](docs/driver-licence-validation.md).
+
+The screenshot below is an earlier flow snapshot already present in the September 3 baseline, not evidence of the later changes.
 
 ![AI Licence Validation Flow](docs/screenshots/ai-licence-validation-flow.png)
 
@@ -212,30 +227,25 @@ For example, a document-processing flow originally failed when an expected file 
 
 ## Power Pages
 
-A Power Pages portal provides a customer-facing layer for reservation-related scenarios.
+The customer-facing portal uses a multi-step reservation form connected to Dataverse. Reservation record creation was confirmed in development on September 18; the remaining issue was displaying the calculated information without reloading the page.
 
-The portal is connected to Dataverse and is being developed to support customer self-service using Power Pages security, web roles, and table permissions.
+The confirmation work uses a separate **Processing Status** concept: **Pending**, **Processing**, **Completed**, **Needs Review** and **Failed**. Flow status mapping was developed, and JavaScript polling through the Power Pages Web API was proposed to refresh the result after asynchronous processing.
 
-This part of the project is currently being refined.
+**Status:** Dataverse creation confirmed; successful automatic confirmation refresh is not yet verified. Processing completion does not mean the licence is valid or the rental is approved.
+
+The approval redesign uses `Start and wait for an approval` with an alternate-approver fallback in the design. Complete response/fallback testing is not confirmed. See [Power Pages and approvals](docs/power-pages-and-approvals.md).
 
 ---
 
 ## AI-assisted Driver Licence Validation
 
-SEVENT includes an AI-assisted driver licence validation scenario.
+Azure AI Document Intelligence v4 was evaluated for driver licence extraction, including the prebuilt ID-document driver-licence output (`idDocument.driverLicense`) and custom extraction experiments.
 
-The current design uses:
+A practical input-quality issue was identified: the Dataverse Image-column input produced inaccurate results, while switching to a File column yielded correct name, date of birth and expiry on the tested documents (September 7–9).
 
-- Azure AI Document Intelligence
-- Power Automate
-- Dataverse
-- Driver licence data extraction
-- Licence expiry validation
-- Age validation
-- Manager approval when required
-- Human review for uncertain results
+The workflow design includes extracted-field checks, licence expiry and minimum-age validation, and human review for uncertain results or contact mismatches. Extraction success on a few samples is not a completed or production-validated licence-validation service.
 
-This feature is currently under development and testing.
+**Status:** extraction prototype tested on samples; broader evaluation and end-to-end validation/approval tests remain open. See [driver licence validation](docs/driver-licence-validation.md).
 
 ---
 
@@ -298,3 +308,4 @@ Managed solution export
 SEVENT TEST
  ↓
 Functional validation
+```
